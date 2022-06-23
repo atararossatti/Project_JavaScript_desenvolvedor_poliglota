@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+       class Person {
+           constructor(name) {
+               this.name = name;
+           }
+       } 
+       const clazz = Person.name;
+
+       let connection = null;
+
+       const openRequest = window.indexedDB.open('db-dm', 1);
+
+       openRequest.onupgradeneeded = e => {
+           console.log('Criou ou atualizou o banco');
+           const minhaConnection = e.target.result;
+
+           if (minhaConnection.objectStoreNames.contains(clazz)) {
+               minhaConnection.deleteObjectStore(clazz);
+           }
+
+           minhaConnection.createObjectStore(clazz, { autoIncrement: true });
+       };
+
+       openRequest.onsuccess = e => {
+           console.log('Obteve a conexão');
+           connection = e.target.result;
+       };
+
+       openRequest.onerror = e => {
+           console.log('Deu erro');
+           console.log(e);
+       };
+
+       function adiciona() {
+           const transaction = connection.transaction([clazz], 'readwrite');
+           const store = transaction.objectStore(clazz);
+           const person = new Person('Flávio');
+           const request = store.add(person);
+
+           request.onsuccess = e => {
+               console.log('Gravei');
+           }
+           
+           request.onerror = e => {
+               console.log('Não gravou');
+               console.log(e);
+           }
+       }
+    </script>
+</body>
+</html>
